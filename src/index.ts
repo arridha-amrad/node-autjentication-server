@@ -9,6 +9,7 @@ import AuthRoutes from './routes/AuthRoutes';
 import UserRoutes from './routes/UserRoutes';
 import { errorMiddleware } from './middleware/ErrorMiddleware';
 import { connect } from './database/mongoDBInitializer';
+import jwtServices from './services/JwtService';
 
 console.clear();
 
