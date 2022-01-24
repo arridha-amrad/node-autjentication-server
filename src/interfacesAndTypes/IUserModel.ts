@@ -1,20 +1,18 @@
 import { AuthenticationStrategy, RequiredAuthAction } from '../enums/UserEnum';
 
 export interface IUserModel {
-  id: string;
-  fullName: string;
+  id?: string;
+  fullName?: string;
   username: string;
   strategy: AuthenticationStrategy;
   email: string;
-  password: string;
+  password?: string;
   requiredAuthAction: RequiredAuthAction;
-  jwtVersion: string;
-  role: string;
-  avatarURL: string;
-  // optional
+  jwtVersion?: string;
+  role?: string;
+  avatarURL?: string;
   isActive?: boolean;
   isVerified?: boolean;
-  // setup by mongoDB
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

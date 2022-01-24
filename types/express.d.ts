@@ -4,9 +4,3 @@ declare namespace Express {
     userId: string;
   }
 }
-
-declare namespace cookieParser {
-  interface cookies {
-    cookieId: string;
-  }
-}

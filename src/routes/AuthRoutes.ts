@@ -1,6 +1,6 @@
 import Express from 'express';
 import * as authController from '../controllers/AuthController';
-import { verifyAccessToken } from '../services/JwtService';
+import { verifyAccessToken } from '../services/JwtServices';
 
 // eslint-disable-next-line new-cap
 const router = Express.Router();

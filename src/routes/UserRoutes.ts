@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import * as userController from '../controllers/UserController';
-import { verifyAccessToken } from '../services/JwtService';
+import { verifyAccessToken } from '../services/JwtServices';
 
 // eslint-disable-next-line new-cap
 const router = Router();

@@ -52,7 +52,7 @@ export const loginValidator = ({
       },
     ];
   }
-  if (password.length === 0) {
+  if (password?.length === 0) {
     errors = [
       ...errors,
       {
@@ -116,7 +116,7 @@ export const registerValidator = (data: RegisterRequest): IValidationResult => {
     ];
   }
 
-  if (password.length === 0) {
+  if (password?.length === 0) {
     errors = [
       ...errors,
       {

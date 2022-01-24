@@ -15,3 +15,8 @@ export type FetchedUserResponse = Pick<
   IUserModel,
   'username' | 'email' | 'createdAt'
 >;
+
+export type LoginUserData = Pick<
+  IUserModel,
+  'username' | 'email' | 'fullName' | 'avatarURL'
+> & { _id: string };

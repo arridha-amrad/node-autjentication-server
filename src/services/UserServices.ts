@@ -1,9 +1,14 @@
+import { FilterQuery, QueryOptions, UpdateQuery } from 'mongoose';
 import { IUserModel } from '../interfacesAndTypes/IUserModel';
 import UserModel from '../models/UserModel';
 
 export const save = async (user: IUserModel): Promise<IUserModel> => {
   const newUser = new UserModel(user);
   return newUser.save();
+};
+
+export const createUser = async (newUser: IUserModel) => {
+  return UserModel.create(newUser);
 };
 
 export const findUserByUsernameOrEmail = async (
@@ -24,7 +29,12 @@ export const findUserById = async (
 
 export const findUserByIdAndUpdate = async (
   id: string,
-  update: Partial<IUserModel>
+  update: UpdateQuery<IUserModel>,
+  options?: QueryOptions | null
 ): Promise<IUserModel | null> => {
-  return UserModel.findByIdAndUpdate(id, { ...update });
+  return UserModel.findByIdAndUpdate(id, update, options);
+};
+
+export const findOne = async (query: FilterQuery<IUserModel>) => {
+  return UserModel.findOne(query);
 };

@@ -3,9 +3,9 @@
     "files": true
   },
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es6",
     "module": "commonjs",
-    "lib": ["ES2021"],
+    "lib": ["ES6", "ES2016.Array.Include"],
     "skipLibCheck": true,
     "sourceMap": false,
     "outDir": "./dist",

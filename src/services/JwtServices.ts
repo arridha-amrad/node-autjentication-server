@@ -10,6 +10,7 @@ import Exception from '../exceptions/Exception';
 import * as fs from 'fs';
 import { IUserModel } from '../interfacesAndTypes/IUserModel';
 import { decrypt } from '../utils/Encrypt';
+import { getAuthTokenFromCookie } from '../utils/CookieHelpers';
 
 const publicKey = fs.readFileSync('keys/public.pem', 'utf-8');
 const privateKey = fs.readFileSync('keys/private.pem', 'utf-8');
@@ -105,7 +106,7 @@ export function verifyAccessToken(
   _: Response,
   next: NextFunction
 ): void {
-  const encryptedToken = req.cookies.LOGIN_COOKIE;
+  const encryptedToken = getAuthTokenFromCookie(req);
   if (!encryptedToken) {
     return next(
       new Exception(HTTP_CODE.UNAUTHORIZED, 'You are not authorized')

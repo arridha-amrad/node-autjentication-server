@@ -41,13 +41,6 @@ export const responseWithCookieOnly = (
     .send('cookie renew');
 };
 
-// export const responseFailure = <T>(res: Response, status: HTTP_CODE, errors: T): void => {
-//   res.status(status).json({
-//     errors: errors,
-//     success: null,
-//   });
-// };
-
 export const responseSuccess = <T>(
   res: Response,
   status: HTTP_CODE,
@@ -55,11 +48,3 @@ export const responseSuccess = <T>(
 ): void => {
   res.status(status).send(data);
 };
-
-// export const serverError = (res: Response): void => {
-//   res.status(500).json({
-//     error: {
-//       generic: 'Something went wrong',
-//     },
-//   });
-// };
