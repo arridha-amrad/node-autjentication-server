@@ -1,21 +1,18 @@
 import { NextFunction, Request, Response } from 'express';
-import { HTTP_CODE } from '../enums/HTTP_CODE';
-import { responseSuccess } from '../ServerResponse';
 import ServerErrorException from '../exceptions/ServerErrorException';
-import UserModel from '../models/UserModel';
+import * as UserServices from '../services/UserServices';
+import { getUserIdFromCookie } from '../utils/CookieHelpers';
 
-export const me = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const me = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const data = await UserModel.findById(req.userId);
-    if (data) {
-      return responseSuccess(res, HTTP_CODE.OK, data);
-    }
+    const userId = getUserIdFromCookie(req);
+    const user = await UserServices.findUserById(
+      userId,
+      '_id username fullName avatarURL email'
+    );
+    return res.status(200).json({ user });
   } catch (err) {
     console.log(err);
-    next(new ServerErrorException());
+    return next(new ServerErrorException());
   }
 };
