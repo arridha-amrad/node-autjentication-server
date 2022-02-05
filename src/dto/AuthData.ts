@@ -16,7 +16,12 @@ export type FetchedUserResponse = Pick<
   'username' | 'email' | 'createdAt'
 >;
 
-export type LoginUserData = Pick<
+export type LoginUser = Pick<
   IUserModel,
   'username' | 'email' | 'fullName' | 'avatarURL'
+> & { _id: string };
+
+export type SessionUser = Pick<
+  IUserModel,
+  'username' | 'email' | 'fullName' | 'avatarURL' | 'jwtVersion' | 'role'
 > & { _id: string };

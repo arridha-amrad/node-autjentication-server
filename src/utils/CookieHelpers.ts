@@ -11,10 +11,10 @@ export const setCookieOptions = (): CookieOptions => {
   };
 };
 
-export const getUserIdFromCookie = (req: Request) => {
-  return req.cookies.cid as string;
+export const getRefreshTokenFromCookie = (req: Request) => {
+  return req.cookies.refreshToken as string | undefined;
 };
 
 export const getAuthTokenFromCookie = (req: Request) => {
-  return req.cookies.authCookie as string;
+  return req.cookies.authToken as string | undefined;
 };
