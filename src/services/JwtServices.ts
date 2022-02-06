@@ -1,16 +1,15 @@
 import { Request, NextFunction, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import {
-  AccessTokenPayloadType,
   LinkPayloadType,
   RefreshTokenPayloadType,
 } from '../interfacesAndTypes/JwtTypes';
-import { HTTP_CODE } from '../enums/HTTP_CODE';
-import Exception from '../exceptions/Exception';
 import * as fs from 'fs';
 import { IUserModel } from '../interfacesAndTypes/IUserModel';
-import { decrypt } from '../utils/Encrypt';
-import { getAuthTokenFromCookie } from '../utils/CookieHelpers';
+import {
+  getAuthTokenFromCookie,
+  setCookieOptions,
+} from '../utils/CookieHelpers';
 
 const publicKey = fs.readFileSync('keys/public.pem', 'utf-8');
 const privateKey = fs.readFileSync('keys/private.pem', 'utf-8');
@@ -63,7 +62,7 @@ export const verifyTokenLink = (token: string): Promise<LinkPayloadType> => {
 
 //* ACCESS TOKEN
 const accessTokenSignOptions: jwt.SignOptions = {
-  expiresIn: '7d',
+  expiresIn: '7s',
   issuer: 'node-authentication',
   audience: 'node-authentication-audience',
   subject: 'authentication',
@@ -72,61 +71,63 @@ const accessTokenSignOptions: jwt.SignOptions = {
 
 const accessTokenVerifyOptions: jwt.VerifyOptions = {
   algorithms: ['RS256'],
-  maxAge: '7d',
+  maxAge: '7s',
   issuer: 'node-authentication',
   audience: 'node-authentication-audience',
   subject: 'authentication',
 };
 
 export const signAccessToken = (
-  user: IUserModel
+  userId: string
 ): Promise<string | undefined> => {
   // console.log('public key : ', publicKey);
   return new Promise((resolve, reject) => {
-    if (!user.id) {
+    if (!userId) {
       reject(new Error('signAccessToken error : userId not provided'));
     }
-    jwt.sign(
-      { userId: user.id, role: user.role },
-      privateKey,
-      accessTokenSignOptions,
-      (err, token) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(`Bearer ${token}`);
+
+    jwt.sign({ userId }, privateKey, accessTokenSignOptions, (err, token) => {
+      if (err) {
+        reject(err);
       }
-    );
+      resolve(`Bearer ${token}`);
+    });
   });
 };
 
 // eslint-disable-next-line
 export function verifyAccessToken(
   req: Request,
-  _: Response,
+  res: Response,
   next: NextFunction
 ): void {
-  const encryptedToken = getAuthTokenFromCookie(req);
-  if (!encryptedToken) {
-    return next(
-      new Exception(HTTP_CODE.UNAUTHORIZED, 'You are not authorized')
+  const token = getAuthTokenFromCookie(req)?.split(' ')[1];
+  if (token) {
+    jwt.verify(
+      token,
+      publicKey,
+      accessTokenVerifyOptions,
+      (err, payload: any) => {
+        if (payload) {
+          req.userId = payload as string;
+        }
+        console.log('err : ', err?.message);
+        if (req.session.user) {
+          req.userId = req.session.user?._id!;
+          signAccessToken(req.session.user._id).then((accToken) => {
+            res.cookie(
+              process.env.COOKIE_ACC_TOKEN,
+              accToken,
+              setCookieOptions()
+            );
+            console.log('cookie renew');
+          });
+        }
+      }
     );
   }
-  const token = decrypt(encryptedToken).split(' ')[1];
-  if (!token) {
-    console.log('verifyAccessToken error : Token not provided');
-    return next(
-      new Exception(HTTP_CODE.METHOD_NOT_ALLOWED, 'You are not authorized')
-    );
-  }
-  jwt.verify(token, publicKey, accessTokenVerifyOptions, (err, payload) => {
-    if (err) {
-      return next(new Exception(HTTP_CODE.UNAUTHORIZED, err.message));
-    }
-    const result = payload as AccessTokenPayloadType;
-    req.userId = result.userId;
-    next();
-  });
+
+  next();
 }
 
 //* REFRESH TOKEN
@@ -183,11 +184,11 @@ export const verifyRefreshToken = (
       oldRefreshToken,
       publicKey,
       refreshTokenVerifyOptions,
-      (err, payload) => {
+      (err, payload: any) => {
         if (err) {
           reject(new Error(`verifyRefreshToken error : ${err.message}`));
         }
-        resolve(payload as RefreshTokenPayloadType);
+        resolve(payload);
       }
     );
   });
