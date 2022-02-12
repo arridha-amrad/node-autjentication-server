@@ -1,6 +1,6 @@
 import { FilterQuery, QueryOptions, UpdateQuery } from 'mongoose';
-import { IUserModel } from '../interfacesAndTypes/IUserModel';
-import UserModel from '../models/UserModel';
+import { IUserModel } from '../models/user/IUserModel';
+import UserModel from '../models/user/UserModel';
 
 export const save = async (user: IUserModel): Promise<IUserModel> => {
   const newUser = new UserModel(user);

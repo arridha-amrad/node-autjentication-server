@@ -2,12 +2,12 @@ import { IMailContent } from '../interfacesAndTypes/MailInterfaces';
 
 export const emailConfirmation = (
   username: string,
-  code: string
+  token: string
 ): IMailContent => ({
   subject: `${process.env.APP_NAME} - Email confirmation`,
-  text: `Please use this code to confirm your email`,
-  html: `<p>Hello ${username}</p><p>Verification Code: ${code}</p> <p>If you didn’t ask to confirm your email, you can ignore this email.
-        </p> <p>Thanks</p>`,
+  text: `Please use this link to confirm your email`,
+  html: `<p>Hello ${username}</p><p>Please use the following link to reset your password:</p> <p>${process.env.SERVER_ORIGIN}/api/auth/email-verification/${token}</p> <p>If you didn’t ask to reset your password, you can ignore this email.
+    </p> <p>Thanks</p>`,
 });
 
 export const resetPasswordRequest = (

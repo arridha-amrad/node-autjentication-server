@@ -4,6 +4,7 @@ declare namespace NodeJS {
     NODE_ENV: string;
     PORT: string;
     DB_URI: string;
+    SERVER_ORIGIN: string;
     CLIENT_ORIGIN: string;
     COOKIE_ACC_TOKEN: string;
     COOKIE_REFRESH_TOKEN: string;

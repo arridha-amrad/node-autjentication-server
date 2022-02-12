@@ -1,33 +1,25 @@
 import { Request, NextFunction, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import {
+  AccessTokenPayloadType,
   LinkPayloadType,
   RefreshTokenPayloadType,
 } from '../interfacesAndTypes/JwtTypes';
 import * as fs from 'fs';
-import { IUserModel } from '../interfacesAndTypes/IUserModel';
-import {
-  getAuthTokenFromCookie,
-  setCookieOptions,
-} from '../utils/CookieHelpers';
+import { getAuthTokenFromCookie } from '../utils/CookieHelpers';
+import { IUserModel } from '../models/user/IUserModel';
 
 const publicKey = fs.readFileSync('keys/public.pem', 'utf-8');
 const privateKey = fs.readFileSync('keys/private.pem', 'utf-8');
 
-const signOptions: jwt.SignOptions = {
+const emailLinkSignOptions: jwt.SignOptions = {
   expiresIn: '7d',
-  issuer: 'node-authentication',
-  audience: 'node-authentication-audience',
-  subject: 'authentication',
   algorithm: 'RS256',
 };
 
-const verifyOptions: jwt.VerifyOptions = {
+const emailLinkVerifyOptions: jwt.VerifyOptions = {
   algorithms: ['RS256'],
   maxAge: '7d',
-  issuer: 'node-authentication',
-  audience: 'node-authentication-audience',
-  subject: 'authentication',
 };
 
 export const createEmailLinkToken = (
@@ -37,7 +29,7 @@ export const createEmailLinkToken = (
     if (!email) {
       reject(new Error('createEmailLinkToken error : email not provided'));
     }
-    jwt.sign({ email }, privateKey, signOptions, (err, token) => {
+    jwt.sign({ email }, privateKey, emailLinkSignOptions, (err, token) => {
       if (err) {
         reject(new Error(`createEmailLinkToken error : ${err.message}`));
       }
@@ -51,7 +43,7 @@ export const verifyTokenLink = (token: string): Promise<LinkPayloadType> => {
     if (!token) {
       reject(new Error('verifyEmailTokenLink error : token not provided'));
     }
-    jwt.verify(token, publicKey, verifyOptions, (err, payload) => {
+    jwt.verify(token, publicKey, emailLinkVerifyOptions, (err, payload) => {
       if (err) {
         reject(new Error(`verifyEmailTokenLink error : ${err.message}`));
       }
@@ -63,24 +55,17 @@ export const verifyTokenLink = (token: string): Promise<LinkPayloadType> => {
 //* ACCESS TOKEN
 const accessTokenSignOptions: jwt.SignOptions = {
   expiresIn: '7s',
-  issuer: 'node-authentication',
-  audience: 'node-authentication-audience',
-  subject: 'authentication',
   algorithm: 'RS256',
 };
 
 const accessTokenVerifyOptions: jwt.VerifyOptions = {
   algorithms: ['RS256'],
   maxAge: '7s',
-  issuer: 'node-authentication',
-  audience: 'node-authentication-audience',
-  subject: 'authentication',
 };
 
 export const signAccessToken = (
   userId: string
 ): Promise<string | undefined> => {
-  // console.log('public key : ', publicKey);
   return new Promise((resolve, reject) => {
     if (!userId) {
       reject(new Error('signAccessToken error : userId not provided'));
@@ -100,51 +85,39 @@ export function verifyAccessToken(
   req: Request,
   res: Response,
   next: NextFunction
-): void {
+) {
   const token = getAuthTokenFromCookie(req)?.split(' ')[1];
-  if (token) {
-    jwt.verify(
-      token,
-      publicKey,
-      accessTokenVerifyOptions,
-      (err, payload: any) => {
-        if (payload) {
-          req.userId = payload as string;
-        }
-        console.log('err : ', err?.message);
-        if (req.session.user) {
-          req.userId = req.session.user?._id!;
-          signAccessToken(req.session.user._id).then((accToken) => {
-            res.cookie(
-              process.env.COOKIE_ACC_TOKEN,
-              accToken,
-              setCookieOptions()
-            );
-            console.log('cookie renew');
-          });
-        }
-      }
-    );
+  if (!token) {
+    return res.status(401).send('no token');
   }
 
-  next();
+  return jwt.verify(
+    token,
+    publicKey,
+    accessTokenVerifyOptions,
+    (err, payload) => {
+      if (err && err.message === 'jwt expired') {
+        return res.status(401).send('token expired');
+      }
+      const verifyTokenPayload = payload as AccessTokenPayloadType | undefined;
+
+      if (verifyTokenPayload) {
+        req.userId = verifyTokenPayload.userId;
+        return next();
+      }
+    }
+  );
 }
 
 //* REFRESH TOKEN
 const refreshTokenSignOptions: jwt.SignOptions = {
   expiresIn: '1y',
-  issuer: 'node-authentication',
-  audience: 'node-authentication-audience',
-  subject: 'authentication',
   algorithm: 'RS256',
 };
 
 const refreshTokenVerifyOptions: jwt.VerifyOptions = {
   algorithms: ['RS256'],
   maxAge: '1y',
-  issuer: 'node-authentication',
-  audience: 'node-authentication-audience',
-  subject: 'authentication',
 };
 export const signRefreshToken = (
   user: IUserModel
@@ -180,16 +153,12 @@ export const verifyRefreshToken = (
         new Error('verifyRefreshToken error : old refresh token not provided')
       );
     }
-    jwt.verify(
-      oldRefreshToken,
-      publicKey,
-      refreshTokenVerifyOptions,
-      (err, payload: any) => {
-        if (err) {
-          reject(new Error(`verifyRefreshToken error : ${err.message}`));
-        }
-        resolve(payload);
+    const token = oldRefreshToken.split(' ')[1];
+    jwt.verify(token, publicKey, refreshTokenVerifyOptions, (err, payload) => {
+      if (err) {
+        reject(new Error(`verifyRefreshToken error : ${err.message}`));
       }
-    );
+      resolve(payload as RefreshTokenPayloadType);
+    });
   });
 };

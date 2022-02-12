@@ -1,4 +1,4 @@
-import { IUserModel } from '../interfacesAndTypes/IUserModel';
+import { IUserModel } from '../models/user/IUserModel';
 
 export type LoginRequest = Pick<IUserModel, 'password'> & {
   identity: string;

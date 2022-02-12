@@ -1,13 +1,11 @@
-import { AuthenticationStrategy, RequiredAuthAction } from '../enums/UserEnum';
-
 export interface IUserModel {
   id?: string;
   fullName?: string;
   username: string;
-  strategy: AuthenticationStrategy;
+  strategy: 'default' | 'google' | 'facebook';
   email: string;
   password?: string;
-  requiredAuthAction: RequiredAuthAction;
+  requiredAuthAction: 'none' | 'emailVerification' | 'resetPassword';
   jwtVersion?: string;
   role?: string;
   avatarURL?: string;
