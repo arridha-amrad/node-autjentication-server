@@ -2,8 +2,6 @@ import { Request, Response } from 'express';
 import * as UserServices from '../services/UserServices';
 
 export const me = async (req: Request, res: Response) => {
-  console.log('request to me');
-
   try {
     const userId = req.userId;
     let user = null;

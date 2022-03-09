@@ -6,7 +6,6 @@ import {
   RefreshTokenPayloadType,
 } from '../interfacesAndTypes/JwtTypes';
 import * as fs from 'fs';
-import { getAuthTokenFromCookie } from '../utils/CookieHelpers';
 import { IUserModel } from '../models/user/IUserModel';
 
 const publicKey = fs.readFileSync('keys/public.pem', 'utf-8');
@@ -54,13 +53,13 @@ export const verifyTokenLink = (token: string): Promise<LinkPayloadType> => {
 
 //* ACCESS TOKEN
 const accessTokenSignOptions: jwt.SignOptions = {
-  expiresIn: '7s',
+  expiresIn: '20s',
   algorithm: 'RS256',
 };
 
 const accessTokenVerifyOptions: jwt.VerifyOptions = {
   algorithms: ['RS256'],
-  maxAge: '7s',
+  maxAge: '20s',
 };
 
 export const signAccessToken = (
@@ -86,10 +85,11 @@ export function verifyAccessToken(
   res: Response,
   next: NextFunction
 ) {
-  const token = getAuthTokenFromCookie(req)?.split(' ')[1];
-  if (!token) {
+  const bearerToken = req.headers['authorization'] as string;
+  if (!bearerToken) {
     return res.status(401).send('no token');
   }
+  const token = bearerToken.split('Bearer ')[1];
 
   return jwt.verify(
     token,

@@ -138,9 +138,8 @@ export const loginHandler = async (req: Request, res: Response) => {
 
     return res
       .status(200)
-      .cookie(process.env.COOKIE_ACC_TOKEN, accessToken, setCookieOptions)
       .cookie(process.env.COOKIE_REFRESH_TOKEN, refreshToken, setCookieOptions)
-      .json({ user: loginUser });
+      .json({ user: loginUser, token: accessToken });
   } catch (err) {
     console.log(err);
     return res.status(500).send('Server Error');
@@ -166,26 +165,20 @@ export const refreshTokenHandler = async (req: Request, res: Response) => {
         if (jwtVersion === user?.jwtVersion) {
           const newAccessToken = await JwtService.signAccessToken(userId);
           const newRefreshToken = await JwtService.signRefreshToken(user);
-          res
-            .cookie(
-              process.env.COOKIE_ACC_TOKEN,
-              newAccessToken,
-              setCookieOptions
-            )
+          return res
             .cookie(
               process.env.COOKIE_REFRESH_TOKEN,
               newRefreshToken,
               setCookieOptions
             )
-            .send('cookie renewed');
+            .json({ token: newAccessToken });
         }
       }
-    } else {
-      res.sendStatus(401);
     }
+    return res.sendStatus(403);
   } catch (err) {
     console.log(err);
-    res.sendStatus(500);
+    return res.sendStatus(500);
   }
 };
 
